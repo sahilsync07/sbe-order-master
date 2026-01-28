@@ -17,19 +17,17 @@ export default function OrderDetails() {
     const { getOrder, addItemToOrder, addItemsToOrder, toggleItemReceived } = useOrders();
 
     const [isAddingItem, setIsAddingItem] = useState(false);
-    const [newItemData, setNewItemData] = useState({ article: '', color: '', size: '', quantity: '', imageUrl: '' });
+    // const [newItemData, setNewItemData] = useState({ article: '', color: '', size: '', quantity: '', imageUrl: '' }); // OLD
     const [previewImage, setPreviewImage] = useState(null);
     const [isModifyMode, setIsModifyMode] = useState(false);
     const [orderSearch, setOrderSearch] = useState('');
     const [rapidEntrySearchTerm, setRapidEntrySearchTerm] = useState('');
+    const [selectedStockItem, setSelectedStockItem] = useState(null);
 
     const order = getOrder(id);
 
-    if (!order) {
-        return <div className="p-8 text-center">Order not found</div>;
-    }
-
     const sortedItems = useMemo(() => {
+        if (!order) return [];
         let items = [...order.items];
 
         if (orderSearch) {
@@ -42,49 +40,27 @@ export default function OrderDetails() {
         }
 
         return items.sort((a, b) => a.article.toLowerCase().localeCompare(b.article.toLowerCase()));
-    }, [order.items, orderSearch]);
+    }, [order, orderSearch]);
 
-    const displayList = useMemo(() => {
-        if (!isAddingItem) return sortedItems;
+    if (!order) {
+        return <div className="p-8 text-center">Order not found</div>;
+    }
 
-        if (!newItemData.article) {
-            return [...sortedItems, { isInputRow: true, id: 'INPUT_ROW' }];
-        }
 
-        const index = sortedItems.findIndex(item =>
-            item.article.toLowerCase().localeCompare(newItemData.article.toLowerCase()) > 0
-        );
 
-        const insertionIndex = index === -1 ? sortedItems.length : index;
 
-        const list = [...sortedItems];
-        list.splice(insertionIndex, 0, { isInputRow: true, id: 'INPUT_ROW' });
-        return list;
-    }, [isAddingItem, sortedItems, newItemData.article]);
 
     const handleStockSelect = (product) => {
         setIsAddingItem(true);
-        setNewItemData({
-            article: product.parsed.name,
-            color: product.parsed.color?.text || product.parsed.color || '',
-            size: product.parsed.size || '',
-            quantity: '', // User to enter quantity
-            imageUrl: product.imageUrl || ''
-        });
+        setSelectedStockItem(product);
     };
 
-    const handleRapidSave = (newItems) => {
-        addItemsToOrder(id, newItems);
-    };
-
-    const handleSaveNewItem = () => {
-        if (!newItemData.article || !newItemData.quantity) return;
-
-        addItemToOrder(id, newItemData);
-        setNewItemData({ article: '', color: '', size: '', quantity: '', imageUrl: '' });
+    const handleRapidSave = async (newItems) => {
+        await addItemsToOrder(id, newItems);
         setIsAddingItem(false);
-
     };
+
+    // Removed handleSaveNewItem as it is replaced by handleRapidSave
 
     const generatePDFAndShare = () => {
         const undispatchedItems = order.items.filter(item => !item.received);
@@ -250,9 +226,15 @@ export default function OrderDetails() {
                 </div>
             </div>
 
-            {order.items.length === 0 && !isAddingItem ? (
+            {(order.items.length === 0 || isAddingItem) ? (
                 <div className="animate-fade-in relative z-10 mt-2 md:mt-0">
-                    <RapidOrderEntry onSave={handleRapidSave} onSearch={setRapidEntrySearchTerm} />
+                    <RapidOrderEntry
+                        onSave={handleRapidSave}
+                        onSearch={setRapidEntrySearchTerm}
+                        onCancel={order.items.length > 0 ? () => setIsAddingItem(false) : undefined}
+                        externalItemToAdd={selectedStockItem}
+                        onItemAdded={() => setSelectedStockItem(null)}
+                    />
                 </div>
             ) : (
                 <div className={`flex flex-col md:flex-row gap-2 md:gap-4 justify-between backdrop-blur-md p-2 md:p-4 rounded-xl md:rounded-2xl border shadow-sm transition-all duration-300 mt-2 md:mt-0 ${dark ? 'bg-white/5 border-white/10' : 'bg-white/60 border-white/50'}`}>
@@ -303,7 +285,7 @@ export default function OrderDetails() {
         </>
     );
 
-    const activeDataEntry = (isAddingItem && newItemData.article?.length > 0) || (orderSearch?.length > 0) || (rapidEntrySearchTerm?.length > 0);
+    const activeDataEntry = (isAddingItem) || (orderSearch?.length > 0) || (rapidEntrySearchTerm?.length > 0);
 
     return (
         <div className="flex flex-col md:flex-row h-full overflow-hidden bg-[#13131a]">
@@ -315,7 +297,7 @@ export default function OrderDetails() {
             {/* Left Sidebar: Mobile (Order 2), Desktop (Order 1) */}
             <div className={`w-full md:w-[25%] shrink-0 relative bg-transparent z-0 order-2 md:order-1 border-b md:border-b-0 border-white/5 rounded-t-[24px] md:rounded-t-none md:rounded-tl-[40px] overflow-hidden shadow-sm md:shadow-none mx-0 md:mx-0 transition-all duration-300 ease-in-out ${activeDataEntry ? 'h-[25vh] opacity-100 mb-2' : 'h-0 opacity-0'} md:h-full md:opacity-100 md:mb-0`}>
                 <StockSidebar
-                    searchTerm={isAddingItem ? newItemData.article : (rapidEntrySearchTerm || orderSearch)}
+                    searchTerm={(isAddingItem || order?.items?.length === 0) ? rapidEntrySearchTerm : orderSearch}
                     onItemSelect={handleStockSelect}
                 />
             </div>
@@ -330,7 +312,7 @@ export default function OrderDetails() {
 
                 {/* Scrollable Content Area */}
                 <div className="flex-1 overflow-auto w-full relative">
-                    {order.items.length > 0 || isAddingItem ? (
+                    {(order.items.length > 0 || isAddingItem) ? (
                         <div className="px-4 md:px-6 pb-32">
                             {/* Desktop Table View */}
                             <div className="hidden md:block bg-transparent">
@@ -355,82 +337,9 @@ export default function OrderDetails() {
                                         </thead>
                                         <tbody>
                                             <AnimatePresence initial={false}>
-                                                {displayList.map((item) => {
-                                                    if (item.isInputRow) {
-                                                        return (
-                                                            <motion.tr
-                                                                layout
-                                                                key="INPUT_ROW"
-                                                                initial={{ opacity: 0, scale: 0.95 }}
-                                                                animate={{ opacity: 1, scale: 1.02 }}
-                                                                exit={{ opacity: 0, scale: 0.95 }}
-                                                                transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                                                                className="relative z-50 drop-shadow-2xl"
-                                                            >
-                                                                <td className="px-4 py-4 rounded-l-2xl bg-white border-y border-l border-indigo-100 align-middle">
-                                                                    {newItemData.imageUrl ? (
-                                                                        <div className="w-10 h-10 rounded-lg overflow-hidden border border-slate-200">
-                                                                            <img src={newItemData.imageUrl} alt="" className="w-full h-full object-cover" />
-                                                                        </div>
-                                                                    ) : (
-                                                                        <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-300">
-                                                                            <Box size={16} />
-                                                                        </div>
-                                                                    )}
-                                                                </td>
-                                                                <td className="px-4 py-4 bg-white border-y border-indigo-100 align-middle">
-                                                                    <span className="inline-flex items-center px-2 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded shadow-sm">
-                                                                        New
-                                                                    </span>
-                                                                </td>
-                                                                <td className="px-4 py-4 bg-white font-bold text-indigo-900 border-y border-indigo-100">
-                                                                    <input
-                                                                        autoFocus
-                                                                        placeholder="Article Name"
-                                                                        value={newItemData.article}
-                                                                        onChange={e => setNewItemData({ ...newItemData, article: e.target.value })}
-                                                                        className="w-full px-3 py-2 text-lg bg-indigo-50/50 rounded-lg border-transparent focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all placeholder:text-indigo-300"
-                                                                    />
-                                                                </td>
-                                                                <td className="px-4 py-4 bg-white border-y border-indigo-100">
-                                                                    <input
-                                                                        placeholder="Color"
-                                                                        value={newItemData.color}
-                                                                        onChange={e => setNewItemData({ ...newItemData, color: e.target.value })}
-                                                                        className="w-full px-3 py-2 bg-slate-50 rounded-lg border-transparent focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all"
-                                                                    />
-                                                                </td>
-                                                                <td className="px-4 py-4 bg-white border-y border-indigo-100">
-                                                                    <input
-                                                                        placeholder="Size"
-                                                                        value={newItemData.size}
-                                                                        onChange={e => setNewItemData({ ...newItemData, size: e.target.value })}
-                                                                        className="w-full px-3 py-2 bg-slate-50 rounded-lg border-transparent focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all font-mono"
-                                                                    />
-                                                                </td>
-                                                                <td className="px-4 py-4 bg-white border-y border-indigo-100">
-                                                                    <input
-                                                                        type="number"
-                                                                        placeholder="Qty"
-                                                                        value={newItemData.quantity}
-                                                                        onChange={e => setNewItemData({ ...newItemData, quantity: e.target.value })}
-                                                                        onKeyDown={e => e.key === 'Enter' && handleSaveNewItem()}
-                                                                        className="w-full px-3 py-2 bg-slate-50 rounded-lg border-transparent focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all font-bold text-slate-800"
-                                                                    />
-                                                                </td>
-                                                                <td className="px-4 py-4 text-right rounded-r-2xl bg-white border-y border-r border-indigo-100" colSpan={isModifyMode ? 2 : 1}>
-                                                                    <div className="flex items-center justify-end gap-2">
-                                                                        <Button size="sm" variant="ghost" onClick={() => setIsAddingItem(false)} className="hover:bg-red-50 hover:text-red-500 rounded-lg">
-                                                                            Cancel
-                                                                        </Button>
-                                                                        <Button size="sm" onClick={handleSaveNewItem} disabled={!newItemData.article || !newItemData.quantity} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 rounded-lg px-6">
-                                                                            Save
-                                                                        </Button>
-                                                                    </div>
-                                                                </td>
-                                                            </motion.tr>
-                                                        );
-                                                    }
+                                                {sortedItems.map((item) => {
+                                                    // Removed INPUT_ROW rendering block
+                                                    if (item.isInputRow) return null;
 
                                                     return (
                                                         <motion.tr
@@ -502,65 +411,8 @@ export default function OrderDetails() {
                             {/* Mobile Grid/Card View (Flux Inspired) */}
                             <div className="md:hidden space-y-3 pb-8">
                                 <AnimatePresence initial={false}>
-                                    {displayList.map((item) => {
-                                        if (item.isInputRow) {
-                                            return (
-                                                <motion.div
-                                                    layout
-                                                    key="INPUT_ROW_MOBILE"
-                                                    initial={{ opacity: 0, y: -20 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    exit={{ opacity: 0, scale: 0.95 }}
-                                                    className="bg-[#CBFB45] rounded-[24px] p-4 shadow-xl border-none relative z-20"
-                                                >
-                                                    <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-slate-900"></span>
-                                                        New Item Entry
-                                                    </h3>
-                                                    <div className="space-y-3">
-                                                        <input
-                                                            autoFocus
-                                                            placeholder="Article Name"
-                                                            value={newItemData.article}
-                                                            onChange={e => setNewItemData({ ...newItemData, article: e.target.value })}
-                                                            className="w-full px-4 py-2.5 text-lg font-bold bg-white/40 backdrop-blur-sm rounded-xl border-transparent focus:bg-white focus:ring-2 focus:ring-slate-900 placeholder:text-slate-500 text-slate-900 transition-all"
-                                                        />
-                                                        <div className="grid grid-cols-2 gap-3">
-                                                            <input
-                                                                placeholder="Color"
-                                                                value={newItemData.color}
-                                                                onChange={e => setNewItemData({ ...newItemData, color: e.target.value })}
-                                                                className="w-full px-3 py-2 bg-white/40 backdrop-blur-sm rounded-lg border-none focus:ring-2 focus:ring-slate-900 text-sm text-slate-900 placeholder:text-slate-500"
-                                                            />
-                                                            <input
-                                                                placeholder="Size"
-                                                                value={newItemData.size}
-                                                                onChange={e => setNewItemData({ ...newItemData, size: e.target.value })}
-                                                                className="w-full px-3 py-2 bg-white/40 backdrop-blur-sm rounded-lg border-none focus:ring-2 focus:ring-slate-900 text-sm font-mono text-slate-900 placeholder:text-slate-500"
-                                                            />
-                                                        </div>
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="flex-1">
-                                                                <input
-                                                                    type="number"
-                                                                    placeholder="Qty"
-                                                                    value={newItemData.quantity}
-                                                                    onChange={e => setNewItemData({ ...newItemData, quantity: e.target.value })}
-                                                                    onKeyDown={e => e.key === 'Enter' && handleSaveNewItem()}
-                                                                    className="w-full px-3 py-2 bg-white/40 backdrop-blur-sm rounded-lg border-none focus:ring-2 focus:ring-slate-900 text-sm font-bold text-slate-900 placeholder:text-slate-500"
-                                                                />
-                                                            </div>
-                                                            <Button size="sm" onClick={handleSaveNewItem} disabled={!newItemData.article || !newItemData.quantity} className="flex-1 bg-slate-900 hover:bg-slate-800 text-[#CBFB45] rounded-lg h-9 text-sm font-bold">
-                                                                Save Item
-                                                            </Button>
-                                                        </div>
-                                                        <Button size="sm" variant="ghost" onClick={() => setIsAddingItem(false)} className="w-full text-slate-700 hover:bg-black/5 h-8 text-xs">
-                                                            Cancel
-                                                        </Button>
-                                                    </div>
-                                                </motion.div>
-                                            );
-                                        }
+                                    {sortedItems.map((item) => {
+                                        if (item.isInputRow) return null;
 
                                         return (
                                             <motion.div

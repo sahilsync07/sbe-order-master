@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { logAction } from '../services/db';
 
 const HistoryContext = createContext();
 
@@ -53,6 +54,17 @@ export function HistoryProvider({ children }) {
             // Keep only last 50 entries to prevent storage bloat
             const newHistory = [newLog, ...prev].slice(0, 50);
             return newHistory;
+        });
+
+        // Search log to Firebase
+        logAction("HISTORY_SNAPSHOT", {
+            description,
+            user: deviceName,
+            snapshotId: newLog.id
+            // We avoid sending the huge snapshot to 'logs' collection to save cost/size, 
+            // unless specifically requested. The 'order_history' collection handles per-order diffs.
+            // But for robustness, we can send it or just reliance on local for Undo.
+            // The user said "all the edit history ... to firebase db".
         });
     };
 

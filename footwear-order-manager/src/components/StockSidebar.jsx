@@ -4,7 +4,7 @@ import { Package, Search, AlertCircle, Loader2, Sparkles, Box } from 'lucide-rea
 import { formatDistanceToNow, isValid } from 'date-fns';
 import { Badge } from './ui/Badge';
 import { extractColor } from '../utils/colors';
-import livestockIcon from '../assets/livestock.svg';
+import flashIcon from '../assets/Flash.png';
 
 const STOCK_DATA_URL = 'https://raw.githubusercontent.com/sahilsync07/sbe/refs/heads/main/frontend/public/assets/stock-data.json';
 
@@ -133,7 +133,7 @@ export function StockSidebar({ searchTerm: externalSearchTerm, onItemSelect }) {
                 <div className="hidden md:flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 flex items-center justify-center shrink-0 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm">
-                            <img src={livestockIcon} alt="Stock" className="w-6 h-6 object-contain opacity-90" />
+                            <img src={flashIcon} alt="Stock" className="w-6 h-6 object-contain opacity-90" />
                         </div>
                         <div>
                             <h2 className="text-base md:text-lg font-bold text-white leading-tight tracking-tight">Live Stock</h2>

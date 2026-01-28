@@ -3,10 +3,11 @@ import { Plus, Save, Trash2 } from 'lucide-react';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 
-export function RapidOrderEntry({ onSave, onSearch }) {
+export function RapidOrderEntry({ onSave, onSearch, onCancel, externalItemToAdd, onItemAdded }) {
     const [rows, setRows] = useState([
         { id: 1, article: '', color: '', size: '', quantity: '' }
     ]);
+    const [focusedRowIndex, setFocusedRowIndex] = useState(0);
 
     // Ref to track the last input for focus management
     const lastInputRef = useRef(null);
@@ -33,6 +34,30 @@ export function RapidOrderEntry({ onSave, onSearch }) {
             }
         }
     }, [rows.length]);
+
+    // Handle external item addition (from Sidebar click)
+    useEffect(() => {
+        if (externalItemToAdd) {
+            const newRows = [...rows];
+            const targetRowIndex = focusedRowIndex !== null && focusedRowIndex < rows.length ? focusedRowIndex : rows.length - 1;
+
+            newRows[targetRowIndex] = {
+                ...newRows[targetRowIndex],
+                article: externalItemToAdd.parsed.name,
+                color: externalItemToAdd.parsed.color?.text || externalItemToAdd.parsed.color || '',
+                size: externalItemToAdd.parsed.size || '',
+                // Preserve quantity if user typed it, else kept empty or default
+                // quantity: newRows[targetRowIndex].quantity 
+            };
+
+            setRows(newRows);
+
+            // Notify parent we consumed it so it doesn't re-trigger
+            if (onItemAdded) {
+                onItemAdded();
+            }
+        }
+    }, [externalItemToAdd, focusedRowIndex]);
 
     const handleChange = (index, field, value) => {
         const newRows = [...rows];
@@ -94,6 +119,10 @@ export function RapidOrderEntry({ onSave, onSearch }) {
                                         value={row.article}
                                         onChange={(e) => handleChange(index, 'article', e.target.value)}
                                         onKeyDown={(e) => handleKeyDown(e, index, 'article')}
+                                        onFocus={() => {
+                                            setFocusedRowIndex(index);
+                                            onSearch && onSearch(row.article);
+                                        }}
                                     />
                                 </td>
                                 <td className="py-2 pl-4">
@@ -162,6 +191,7 @@ export function RapidOrderEntry({ onSave, onSearch }) {
                                 placeholder="Article Name"
                                 value={row.article}
                                 onChange={(e) => handleChange(index, 'article', e.target.value)}
+                                onFocus={() => onSearch && onSearch(row.article)}
                                 className="w-full px-4 py-2.5 text-lg font-bold bg-white/40 backdrop-blur-sm rounded-xl border-transparent focus:bg-white focus:ring-2 focus:ring-slate-900 placeholder:text-slate-500 text-slate-900 transition-all"
                             />
                             <div className="grid grid-cols-2 gap-3">
@@ -201,10 +231,17 @@ export function RapidOrderEntry({ onSave, onSearch }) {
                     <Plus size={16} />
                     Add Row
                 </button>
-                <Button onClick={handleSave} disabled={!rows.some(r => r.article && r.quantity)}>
-                    <Save size={18} className="mr-2" />
-                    Save Items
-                </Button>
+                <div className="flex items-center gap-2">
+                    {onCancel && (
+                        <Button variant="ghost" onClick={onCancel}>
+                            Cancel
+                        </Button>
+                    )}
+                    <Button onClick={handleSave} disabled={!rows.some(r => r.article && r.quantity)}>
+                        <Save size={18} className="mr-2" />
+                        Save Items
+                    </Button>
+                </div>
             </div>
         </div>
     );
