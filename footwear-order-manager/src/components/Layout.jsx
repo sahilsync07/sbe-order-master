@@ -1,3 +1,7 @@
+import React, { useState } from 'react';
+import { Outlet } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
+import { Search } from 'lucide-react';
 import logo from '../assets/logo.svg';
 
 export default function Layout() {
