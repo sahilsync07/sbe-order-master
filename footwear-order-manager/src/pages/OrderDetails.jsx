@@ -302,6 +302,8 @@ export default function OrderDetails() {
         </>
     );
 
+    const activeDataEntry = (isAddingItem && newItemData.article?.length > 0) || (rapidSearchTerm?.length > 0);
+
     return (
         <div className="flex flex-col md:flex-row h-full overflow-hidden bg-[#13131a]">
             {/* Mobile Header - Visible only on mobile, Order 1 */}
@@ -310,9 +312,9 @@ export default function OrderDetails() {
             </div>
 
             {/* Left Sidebar: Mobile (Order 2), Desktop (Order 1) */}
-            <div className="w-full md:w-[25%] h-[22vh] md:h-full shrink-0 relative bg-transparent z-0 order-2 md:order-1 border-b md:border-b-0 border-white/5 rounded-t-[24px] md:rounded-t-none md:rounded-tl-[40px] overflow-hidden shadow-sm md:shadow-none mx-0 md:mx-0">
+            <div className={`w-full md:w-[25%] shrink-0 relative bg-transparent z-0 order-2 md:order-1 border-b md:border-b-0 border-white/5 rounded-t-[24px] md:rounded-t-none md:rounded-tl-[40px] overflow-hidden shadow-sm md:shadow-none mx-0 md:mx-0 transition-all duration-300 ease-in-out ${activeDataEntry ? 'h-[25vh] opacity-100 mb-2' : 'h-0 opacity-0 md:h-full md:opacity-100 mb-0'}`}>
                 <StockSidebar
-                    searchTerm={newItemData.article}
+                    searchTerm={isAddingItem ? newItemData.article : rapidSearchTerm}
                     onItemSelect={handleStockSelect}
                 />
             </div>
