@@ -21,6 +21,7 @@ export default function OrderDetails() {
     const [previewImage, setPreviewImage] = useState(null);
     const [isModifyMode, setIsModifyMode] = useState(false);
     const [orderSearch, setOrderSearch] = useState('');
+    const [rapidEntrySearchTerm, setRapidEntrySearchTerm] = useState('');
 
     const order = getOrder(id);
 
@@ -233,7 +234,7 @@ export default function OrderDetails() {
     // Calculate total quantity
     const totalQty = order?.items?.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0) || 0;
 
-    const HeaderContent = ({ dark = false }) => (
+    const renderHeader = (dark = false) => (
         <>
             <div className="flex items-center gap-3">
                 <button onClick={() => navigate(-1)} className={`p-1.5 rounded-full transition-colors ${dark ? 'hover:bg-white/10 text-white' : 'hover:bg-slate-200 text-slate-700'}`}>
@@ -251,7 +252,7 @@ export default function OrderDetails() {
 
             {order.items.length === 0 && !isAddingItem ? (
                 <div className="animate-fade-in relative z-10 mt-2 md:mt-0">
-                    <RapidOrderEntry onSave={handleRapidSave} />
+                    <RapidOrderEntry onSave={handleRapidSave} onSearch={setRapidEntrySearchTerm} />
                 </div>
             ) : (
                 <div className={`flex flex-col md:flex-row gap-2 md:gap-4 justify-between backdrop-blur-md p-2 md:p-4 rounded-xl md:rounded-2xl border shadow-sm transition-all duration-300 mt-2 md:mt-0 ${dark ? 'bg-white/5 border-white/10' : 'bg-white/60 border-white/50'}`}>
@@ -302,19 +303,19 @@ export default function OrderDetails() {
         </>
     );
 
-    const activeDataEntry = (isAddingItem && newItemData.article?.length > 0) || (orderSearch?.length > 0);
+    const activeDataEntry = (isAddingItem && newItemData.article?.length > 0) || (orderSearch?.length > 0) || (rapidEntrySearchTerm?.length > 0);
 
     return (
         <div className="flex flex-col md:flex-row h-full overflow-hidden bg-[#13131a]">
             {/* Mobile Header - Visible only on mobile, Order 1 */}
             <div className="md:hidden shrink-0 z-10 p-2 pt-1 mb-2">
-                <HeaderContent dark />
+                {renderHeader(true)}
             </div>
 
             {/* Left Sidebar: Mobile (Order 2), Desktop (Order 1) */}
-            <div className={`w-full md:w-[25%] shrink-0 relative bg-transparent z-0 order-2 md:order-1 border-b md:border-b-0 border-white/5 rounded-t-[24px] md:rounded-t-none md:rounded-tl-[40px] overflow-hidden shadow-sm md:shadow-none mx-0 md:mx-0 transition-all duration-300 ease-in-out ${activeDataEntry ? 'h-[25vh] opacity-100 mb-2' : 'h-0 opacity-0 md:h-full md:opacity-100 mb-0'}`}>
+            <div className={`w-full md:w-[25%] shrink-0 relative bg-transparent z-0 order-2 md:order-1 border-b md:border-b-0 border-white/5 rounded-t-[24px] md:rounded-t-none md:rounded-tl-[40px] overflow-hidden shadow-sm md:shadow-none mx-0 md:mx-0 transition-all duration-300 ease-in-out ${activeDataEntry ? 'h-[25vh] opacity-100 mb-2' : 'h-0 opacity-0'} md:h-full md:opacity-100 md:mb-0`}>
                 <StockSidebar
-                    searchTerm={isAddingItem ? newItemData.article : orderSearch}
+                    searchTerm={isAddingItem ? newItemData.article : (rapidEntrySearchTerm || orderSearch)}
                     onItemSelect={handleStockSelect}
                 />
             </div>
@@ -324,7 +325,7 @@ export default function OrderDetails() {
             <div className="flex-1 h-full overflow-hidden relative bg-slate-50 md:rounded-l-[40px] shadow-none md:shadow-[-8px_0_24px_rgba(0,0,0,0.06)] z-10 border-l-0 md:border-l border-white/50 flex flex-col order-3 md:order-2">
                 {/* Desktop Header - Visible only on desktop */}
                 <div className="hidden md:block w-full p-6 pb-0 space-y-6 shrink-0 z-20 bg-slate-50 md:rounded-tl-[40px]">
-                    <HeaderContent />
+                    {renderHeader()}
                 </div>
 
                 {/* Scrollable Content Area */}

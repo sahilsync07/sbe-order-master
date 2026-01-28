@@ -90,7 +90,7 @@ export function RapidOrderEntry({ onSave, onSearch }) {
                                     <input
                                         name="article"
                                         placeholder="Article"
-                                        className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all placeholder-slate-400"
+                                        className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:border-[#CBFB45] focus:ring-1 focus:ring-[#CBFB45] outline-none transition-all placeholder-slate-400"
                                         value={row.article}
                                         onChange={(e) => handleChange(index, 'article', e.target.value)}
                                         onKeyDown={(e) => handleKeyDown(e, index, 'article')}
@@ -99,7 +99,7 @@ export function RapidOrderEntry({ onSave, onSearch }) {
                                 <td className="py-2 pl-4">
                                     <input
                                         placeholder="Color"
-                                        className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all placeholder-slate-400"
+                                        className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:border-[#CBFB45] focus:ring-1 focus:ring-[#CBFB45] outline-none transition-all placeholder-slate-400"
                                         value={row.color}
                                         onChange={(e) => handleChange(index, 'color', e.target.value)}
                                         onKeyDown={(e) => handleKeyDown(e, index, 'color')}
@@ -108,7 +108,7 @@ export function RapidOrderEntry({ onSave, onSearch }) {
                                 <td className="py-2 pl-4">
                                     <input
                                         placeholder="Size"
-                                        className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all placeholder-slate-400"
+                                        className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:border-[#CBFB45] focus:ring-1 focus:ring-[#CBFB45] outline-none transition-all placeholder-slate-400"
                                         value={row.size}
                                         onChange={(e) => handleChange(index, 'size', e.target.value)}
                                         onKeyDown={(e) => handleKeyDown(e, index, 'size')}
@@ -118,7 +118,7 @@ export function RapidOrderEntry({ onSave, onSearch }) {
                                     <input
                                         placeholder="Qty"
                                         type="number"
-                                        className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all placeholder-slate-400"
+                                        className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:border-[#CBFB45] focus:ring-1 focus:ring-[#CBFB45] outline-none transition-all placeholder-slate-400"
                                         value={row.quantity}
                                         onChange={(e) => handleChange(index, 'quantity', e.target.value)}
                                         onKeyDown={(e) => handleKeyDown(e, index, 'quantity')}
