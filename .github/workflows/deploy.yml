@@ -1,0 +1,40 @@
+name: Build and Deploy to gh-pages
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: "npm"
+          cache-dependency-path: footwear-order-manager/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd footwear-order-manager
+          npm install
+
+      - name: Build frontend
+        run: |
+          cd footwear-order-manager
+          npm run build
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: footwear-order-manager/dist
+          publish_branch: gh-pages
+          force_orphan: true
