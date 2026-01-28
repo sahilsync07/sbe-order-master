@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import { OrderProvider } from './context/OrderContext';
 import { HistoryProvider } from './context/HistoryContext';
@@ -9,7 +9,7 @@ function App() {
   return (
     <HistoryProvider>
       <OrderProvider>
-        <BrowserRouter>
+        <HashRouter>
           <Routes>
             <Route element={<Layout />}>
               <Route path="/" element={<Dashboard />} />
@@ -17,7 +17,7 @@ function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>
-        </BrowserRouter>
+        </HashRouter>
       </OrderProvider>
     </HistoryProvider>
   );
