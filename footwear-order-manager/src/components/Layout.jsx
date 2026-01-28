@@ -1,7 +1,4 @@
-import React, { useState } from 'react';
-import { ShoppingBag, Search, Calendar, Bell, Menu } from 'lucide-react';
-import { Outlet } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
+import logo from '../assets/logo.svg';
 
 export default function Layout() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -14,7 +11,7 @@ export default function Layout() {
                     <div className="relative group">
                         <div className="absolute inset-0 bg-linear-to-br from-indigo-500 to-purple-600 rounded-2xl blur-md opacity-20 group-hover:opacity-40 transition-opacity"></div>
                         <div className="w-10 h-10 md:w-14 md:h-14 relative z-10 transform group-hover:scale-105 transition-transform duration-300">
-                            <img src="/src/assets/logo.svg" alt="OrderMaster Logo" className="w-full h-full object-contain drop-shadow-xl" />
+                            <img src={logo} alt="OrderMaster Logo" className="w-full h-full object-contain drop-shadow-xl" />
                         </div>
                     </div>
 
