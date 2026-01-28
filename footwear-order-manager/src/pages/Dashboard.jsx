@@ -18,6 +18,7 @@ export default function Dashboard() {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
     const [revertTarget, setRevertTarget] = useState(null);
+    const [activeStatus, setActiveStatus] = useState('pending'); // Default to Pending as requested
 
     const [newOrderSupplier, setNewOrderSupplier] = useState('');
     const [newOrderDate, setNewOrderDate] = useState(new Date().toISOString().split('T')[0]);
@@ -43,6 +44,7 @@ export default function Dashboard() {
     };
 
     const handleRevert = () => {
+        // ... (existing revert logic)
         if (!revertTarget) return;
 
         replaceState(revertTarget.snapshot);
@@ -59,6 +61,13 @@ export default function Dashboard() {
         if (receivedCount > 0) return 'in progress';
         return 'pending';
     };
+
+    // Filter Logic
+    const filteredOrders = orders.filter(order => {
+        if (activeStatus === 'all') return true;
+        return getOrderStatus(order) === activeStatus;
+    });
+
 
     const getStatusVariant = (status) => {
         switch (status) {
@@ -99,18 +108,23 @@ export default function Dashboard() {
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         {['All', 'Pending', 'In Progress', 'Completed'].map((tab, i) => {
                             const statusKey = tab.toLowerCase();
+                            const isActive = activeStatus === statusKey;
 
                             let realCount = 0;
-                            if (i === 0) {
+                            if (statusKey === 'all') {
                                 realCount = orders.length;
                             } else {
                                 realCount = orders.filter(o => getOrderStatus(o) === statusKey).length;
                             }
 
                             return (
-                                <button key={tab} className={`px-4 py-3 rounded-xl font-medium text-sm transition-all text-left flex items-center justify-between ${i === 0 ? 'bg-white shadow-sm border border-slate-200 text-slate-900 ring-1 ring-slate-100' : 'text-slate-500 hover:bg-white hover:shadow-xs'}`}>
+                                <button
+                                    key={tab}
+                                    onClick={() => setActiveStatus(statusKey)}
+                                    className={`px-4 py-3 rounded-xl font-medium text-sm transition-all text-left flex items-center justify-between ${isActive ? 'bg-white shadow-sm border border-slate-200 text-slate-900 ring-1 ring-slate-100' : 'text-slate-500 hover:bg-white hover:shadow-xs'}`}
+                                >
                                     {tab}
-                                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${i === 0 ? 'bg-slate-100 text-slate-900' : 'bg-slate-100 text-slate-500'}`}>
+                                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${isActive ? 'bg-slate-100 text-slate-900' : 'bg-slate-100 text-slate-500'}`}>
                                         {realCount}
                                     </span>
                                 </button>
@@ -120,67 +134,77 @@ export default function Dashboard() {
 
                     {/* Orders Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {orders.map((order, index) => {
-                            const currentStatus = getOrderStatus(order);
+                        <AnimatePresence>
+                            {filteredOrders.length === 0 && (
+                                <div className="col-span-full py-12 text-center text-slate-400">
+                                    <p>No orders found in {activeStatus === 'all' ? 'total' : activeStatus}</p>
+                                </div>
+                            )}
 
-                            return (
-                                <motion.div
-                                    key={order.id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: index * 0.05 }}
-                                    onClick={() => navigate(`/order/${order.id}`)}
-                                    className="group bg-[#CBFB45] rounded-[32px] border-none p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer relative overflow-hidden"
-                                >
-                                    {/* Hover Arrow */}
-                                    <div className="absolute bottom-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                                        <div className="bg-slate-50 p-2 rounded-full text-slate-400 hover:text-slate-900 shadow-sm border border-slate-100">
-                                            <ArrowRight size={20} />
-                                        </div>
-                                    </div>
+                            {filteredOrders.map((order, index) => {
+                                const currentStatus = getOrderStatus(order);
 
-                                    <div className="flex items-start justify-between mb-6">
-                                        <div className="w-12 h-12 rounded-xl bg-white/40 backdrop-blur-sm text-slate-900 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                                            <Package size={24} />
-                                        </div>
-                                        <div className="bg-white/40 backdrop-blur-sm px-3 py-1 rounded-full">
-                                            <span className="text-xs font-bold text-slate-900 tracking-wider">
-                                                {currentStatus.toUpperCase()}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <h3 className="text-lg font-bold text-slate-900 mb-1 line-clamp-1 group-hover:text-slate-900 transition-colors">{order.title}</h3>
-                                    <p className="text-sm text-slate-500 mb-4">{order.supplier}</p>
-
-                                    <div className="space-y-3">
-                                        <div className="flex items-center justify-between text-sm">
-                                            <span className="text-slate-500">Total Items</span>
-                                            <span className="font-semibold text-slate-900">{order.items.length}</span>
-                                        </div>
-                                        <div className="flex items-center justify-between text-sm">
-                                            <span className="text-slate-500">Received</span>
-                                            <span className="font-semibold text-slate-900">
-                                                {order.items.filter(i => i.received).length} / {order.items.length}
-                                            </span>
+                                return (
+                                    <motion.div
+                                        key={order.id}
+                                        layout
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.95 }}
+                                        transition={{ delay: index * 0.05 }}
+                                        onClick={() => navigate(`/order/${order.id}`)}
+                                        className="group bg-[#CBFB45] rounded-[32px] border-none p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer relative overflow-hidden"
+                                    >
+                                        {/* Hover Arrow */}
+                                        <div className="absolute bottom-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                            <div className="bg-slate-50 p-2 rounded-full text-slate-400 hover:text-slate-900 shadow-sm border border-slate-100">
+                                                <ArrowRight size={20} />
+                                            </div>
                                         </div>
 
-                                        {/* Progress Bar */}
-                                        <div className="h-1.5 w-full bg-white/30 rounded-full overflow-hidden mt-4">
-                                            <div
-                                                className="h-full bg-slate-900 rounded-full transition-all duration-500"
-                                                style={{ width: `${order.items.length ? (order.items.filter(i => i.received).length / order.items.length) * 100 : 0}%` }}
-                                            />
+                                        <div className="flex items-start justify-between mb-6">
+                                            <div className="w-12 h-12 rounded-xl bg-white/40 backdrop-blur-sm text-slate-900 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                                <Package size={24} />
+                                            </div>
+                                            <div className="bg-white/40 backdrop-blur-sm px-3 py-1 rounded-full">
+                                                <span className="text-xs font-bold text-slate-900 tracking-wider">
+                                                    {currentStatus.toUpperCase()}
+                                                </span>
+                                            </div>
                                         </div>
 
-                                        <div className="pt-4 mt-4 border-t border-slate-50 text-xs text-slate-400 flex items-center gap-2">
-                                            <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
-                                            Created {new Date(order.date).toLocaleDateString()}
+                                        <h3 className="text-lg font-bold text-slate-900 mb-1 line-clamp-1 group-hover:text-slate-900 transition-colors">{order.title}</h3>
+                                        <p className="text-sm text-slate-500 mb-4">{order.supplier}</p>
+
+                                        <div className="space-y-3">
+                                            <div className="flex items-center justify-between text-sm">
+                                                <span className="text-slate-500">Total Items</span>
+                                                <span className="font-semibold text-slate-900">{order.items.length}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between text-sm">
+                                                <span className="text-slate-500">Received</span>
+                                                <span className="font-semibold text-slate-900">
+                                                    {order.items.filter(i => i.received).length} / {order.items.length}
+                                                </span>
+                                            </div>
+
+                                            {/* Progress Bar */}
+                                            <div className="h-1.5 w-full bg-white/30 rounded-full overflow-hidden mt-4">
+                                                <div
+                                                    className="h-full bg-slate-900 rounded-full transition-all duration-500"
+                                                    style={{ width: `${order.items.length ? (order.items.filter(i => i.received).length / order.items.length) * 100 : 0}%` }}
+                                                />
+                                            </div>
+
+                                            <div className="pt-4 mt-4 border-t border-slate-50 text-xs text-slate-400 flex items-center gap-2">
+                                                <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
+                                                Created {new Date(order.date).toLocaleDateString()}
+                                            </div>
                                         </div>
-                                    </div>
-                                </motion.div>
-                            );
-                        })}
+                                    </motion.div>
+                                );
+                            })}
+                        </AnimatePresence>
 
                         {/* Create New Placeholder Card */}
                         <button

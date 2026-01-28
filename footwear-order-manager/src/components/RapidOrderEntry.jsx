@@ -66,9 +66,13 @@ export function RapidOrderEntry({ onSave, onSearch }) {
     };
 
     return (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 overflow-hidden">
-            <h3 className="text-lg font-bold text-slate-900 mb-4">Rapid Order Entry</h3>
-            <div className="overflow-x-auto">
+        <div className="bg-white md:bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="p-4 md:p-6 pb-0">
+                <h3 className="text-lg font-bold text-slate-900 mb-2">Rapid Order Entry</h3>
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden md:block p-6 pt-2 overflow-x-auto">
                 <table className="w-full min-w-[600px]">
                     <thead>
                         <tr className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">
@@ -135,10 +139,64 @@ export function RapidOrderEntry({ onSave, onSearch }) {
                 </table>
             </div>
 
-            <div className="mt-6 flex justify-between items-center border-t border-slate-100 pt-4">
+            {/* Mobile Card View */}
+            <div className="md:hidden p-4 pt-0 space-y-4">
+                {rows.map((row, index) => (
+                    <div key={row.id} className="bg-[#CBFB45] rounded-[24px] p-4 shadow-xl border-none relative z-20">
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-slate-900"></span>
+                                Item #{index + 1}
+                            </h3>
+                            <button
+                                onClick={() => removeRow(index)}
+                                className="text-slate-900 hover:text-red-600 p-1"
+                            >
+                                <Trash2 size={16} />
+                            </button>
+                        </div>
+
+                        <div className="space-y-3">
+                            <input
+                                name="article"
+                                placeholder="Article Name"
+                                value={row.article}
+                                onChange={(e) => handleChange(index, 'article', e.target.value)}
+                                className="w-full px-4 py-2.5 text-lg font-bold bg-white/40 backdrop-blur-sm rounded-xl border-transparent focus:bg-white focus:ring-2 focus:ring-slate-900 placeholder:text-slate-500 text-slate-900 transition-all"
+                            />
+                            <div className="grid grid-cols-2 gap-3">
+                                <input
+                                    placeholder="Color"
+                                    value={row.color}
+                                    onChange={(e) => handleChange(index, 'color', e.target.value)}
+                                    className="w-full px-3 py-2 bg-white/40 backdrop-blur-sm rounded-lg border-none focus:ring-2 focus:ring-slate-900 text-sm text-slate-900 placeholder:text-slate-500"
+                                />
+                                <input
+                                    placeholder="Size"
+                                    value={row.size}
+                                    onChange={(e) => handleChange(index, 'size', e.target.value)}
+                                    className="w-full px-3 py-2 bg-white/40 backdrop-blur-sm rounded-lg border-none focus:ring-2 focus:ring-slate-900 text-sm font-mono text-slate-900 placeholder:text-slate-500"
+                                />
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <input
+                                    type="number"
+                                    placeholder="Qty"
+                                    value={row.quantity}
+                                    onChange={(e) => handleChange(index, 'quantity', e.target.value)}
+                                    onKeyDown={(e) => handleKeyDown(e, index, 'quantity')}
+                                    className="w-full px-3 py-2 bg-white/40 backdrop-blur-sm rounded-lg border-none focus:ring-2 focus:ring-slate-900 text-sm font-bold text-slate-900 placeholder:text-slate-500"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <div className="p-4 md:p-6 border-t border-slate-100 flex justify-between items-center bg-slate-50 md:bg-transparent">
                 <button
                     onClick={() => setRows([...rows, { id: rows.length + 1, article: '', color: '', size: '', quantity: '' }])}
-                    className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-indigo-600 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+                    className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-indigo-600 px-3 py-2 rounded-lg hover:bg-white hover:shadow-sm transition-all"
                 >
                     <Plus size={16} />
                     Add Row

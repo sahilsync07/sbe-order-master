@@ -302,7 +302,7 @@ export default function OrderDetails() {
         </>
     );
 
-    const activeDataEntry = (isAddingItem && newItemData.article?.length > 0) || (rapidSearchTerm?.length > 0);
+    const activeDataEntry = (isAddingItem && newItemData.article?.length > 0) || (orderSearch?.length > 0);
 
     return (
         <div className="flex flex-col md:flex-row h-full overflow-hidden bg-[#13131a]">
@@ -314,7 +314,7 @@ export default function OrderDetails() {
             {/* Left Sidebar: Mobile (Order 2), Desktop (Order 1) */}
             <div className={`w-full md:w-[25%] shrink-0 relative bg-transparent z-0 order-2 md:order-1 border-b md:border-b-0 border-white/5 rounded-t-[24px] md:rounded-t-none md:rounded-tl-[40px] overflow-hidden shadow-sm md:shadow-none mx-0 md:mx-0 transition-all duration-300 ease-in-out ${activeDataEntry ? 'h-[25vh] opacity-100 mb-2' : 'h-0 opacity-0 md:h-full md:opacity-100 mb-0'}`}>
                 <StockSidebar
-                    searchTerm={isAddingItem ? newItemData.article : rapidSearchTerm}
+                    searchTerm={isAddingItem ? newItemData.article : orderSearch}
                     onItemSelect={handleStockSelect}
                 />
             </div>
@@ -510,10 +510,10 @@ export default function OrderDetails() {
                                                     initial={{ opacity: 0, y: -20 }}
                                                     animate={{ opacity: 1, y: 0 }}
                                                     exit={{ opacity: 0, scale: 0.95 }}
-                                                    className="bg-white rounded-[24px] p-4 shadow-xl shadow-indigo-100/50 border border-indigo-100 relative z-20"
+                                                    className="bg-[#CBFB45] rounded-[24px] p-4 shadow-xl border-none relative z-20"
                                                 >
-                                                    <h3 className="text-xs font-bold text-indigo-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                                                    <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-slate-900"></span>
                                                         New Item Entry
                                                     </h3>
                                                     <div className="space-y-3">
@@ -522,20 +522,20 @@ export default function OrderDetails() {
                                                             placeholder="Article Name"
                                                             value={newItemData.article}
                                                             onChange={e => setNewItemData({ ...newItemData, article: e.target.value })}
-                                                            className="w-full px-4 py-2.5 text-lg font-bold bg-indigo-50/30 rounded-xl border-transparent focus:bg-white focus:ring-2 focus:ring-indigo-500 placeholder:text-slate-300 transition-all"
+                                                            className="w-full px-4 py-2.5 text-lg font-bold bg-white/40 backdrop-blur-sm rounded-xl border-transparent focus:bg-white focus:ring-2 focus:ring-slate-900 placeholder:text-slate-500 text-slate-900 transition-all"
                                                         />
                                                         <div className="grid grid-cols-2 gap-3">
                                                             <input
                                                                 placeholder="Color"
                                                                 value={newItemData.color}
                                                                 onChange={e => setNewItemData({ ...newItemData, color: e.target.value })}
-                                                                className="w-full px-3 py-2 bg-slate-50 rounded-lg border-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                                                                className="w-full px-3 py-2 bg-white/40 backdrop-blur-sm rounded-lg border-none focus:ring-2 focus:ring-slate-900 text-sm text-slate-900 placeholder:text-slate-500"
                                                             />
                                                             <input
                                                                 placeholder="Size"
                                                                 value={newItemData.size}
                                                                 onChange={e => setNewItemData({ ...newItemData, size: e.target.value })}
-                                                                className="w-full px-3 py-2 bg-slate-50 rounded-lg border-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
+                                                                className="w-full px-3 py-2 bg-white/40 backdrop-blur-sm rounded-lg border-none focus:ring-2 focus:ring-slate-900 text-sm font-mono text-slate-900 placeholder:text-slate-500"
                                                             />
                                                         </div>
                                                         <div className="flex items-center gap-3">
@@ -546,14 +546,14 @@ export default function OrderDetails() {
                                                                     value={newItemData.quantity}
                                                                     onChange={e => setNewItemData({ ...newItemData, quantity: e.target.value })}
                                                                     onKeyDown={e => e.key === 'Enter' && handleSaveNewItem()}
-                                                                    className="w-full px-3 py-2 bg-slate-50 rounded-lg border-none focus:ring-2 focus:ring-indigo-500 text-sm font-bold"
+                                                                    className="w-full px-3 py-2 bg-white/40 backdrop-blur-sm rounded-lg border-none focus:ring-2 focus:ring-slate-900 text-sm font-bold text-slate-900 placeholder:text-slate-500"
                                                                 />
                                                             </div>
-                                                            <Button size="sm" onClick={handleSaveNewItem} disabled={!newItemData.article || !newItemData.quantity} className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg h-9 text-sm">
+                                                            <Button size="sm" onClick={handleSaveNewItem} disabled={!newItemData.article || !newItemData.quantity} className="flex-1 bg-slate-900 hover:bg-slate-800 text-[#CBFB45] rounded-lg h-9 text-sm font-bold">
                                                                 Save Item
                                                             </Button>
                                                         </div>
-                                                        <Button size="sm" variant="ghost" onClick={() => setIsAddingItem(false)} className="w-full text-red-500 hover:bg-red-50 h-8 text-xs">
+                                                        <Button size="sm" variant="ghost" onClick={() => setIsAddingItem(false)} className="w-full text-slate-700 hover:bg-black/5 h-8 text-xs">
                                                             Cancel
                                                         </Button>
                                                     </div>
